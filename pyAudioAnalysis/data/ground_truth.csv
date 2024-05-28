@@ -1,0 +1,5 @@
+filename,start_time,end_time,label
+recording1.wav,0.0,2.0,speech
+recording1.wav,2.0,5.0,music
+recording1.wav,5.0,7.0,speech
+recording1.wav,7.0,10.0,music
