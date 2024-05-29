@@ -93,7 +93,7 @@ def classifier_wrapper(classifier, classifier_type, test_sample):
     return class_id, probability
 
 
-def regression_wrapper(model, model_type, test_sample):
+def regression_wrapper(model, model_type, test_sample, classifier_type):
     """
     This function is used as a wrapper to pattern classification.
     ARGUMENTS:
@@ -106,12 +106,13 @@ def regression_wrapper(model, model_type, test_sample):
     EXAMPLE (for some audio signal stored in array x):
         TODO
     """
-    if model_type == "svm" or model_type == "randomforest" or \
-            model_type == "svm_rbf":
+    if model_type in ["svm", "randomforest", "svm_rbf"]:
         return model.predict(test_sample.reshape(1, -1))[0]
 
-    #    elif classifier_type == "knn":
-    #    TODO
+    elif model_type == "knn":
+        return model.predict(test_sample.reshape(1, -1))[0]
+    else:
+        raise ValueError (f"Provided model type: {model_type} can't be find. Please verify the model type.")
 
 
 def train_knn(features, labels, neighbors):

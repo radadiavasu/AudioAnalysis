@@ -165,9 +165,10 @@ def read_segmentation_gt(gt_file):
             reader = csv.reader(f)
             next(reader)  # Skip header
             for row in reader:
-                seg_start.append(float(row[0]))
-                seg_end.append(float(row[1]))
-                seg_labs.append(float(row[2]))
+                if len(row) == 3:
+                    seg_start.append(float(row[0]))
+                    seg_end.append(float(row[1]))
+                    seg_labs.append(float(row[2]))
         return seg_start, seg_end, seg_labs
     
     except ModuleNotFoundError as e:
