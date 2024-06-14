@@ -13,14 +13,17 @@ import sklearn.discriminant_analysis
 import sys
 from sklearn.preprocessing import StandardScaler
 import plotly.express as px
-
+from sklearn import decomposition
+# from matplotlib import cm
 
 def generateColorMap():
     '''
     This function generates a 256 jet colormap of HTML-like
     hex string colors (e.g. FF88AA)
-    '''
-    Map = cm.jet(np.arange(256))
+    # '''
+    # Jet = cm.get_cmap('jet')
+    # Map = Jet(np.arange(256))
+    Map = cm.jet(np.arange(256)) # Under Testing
     stringColors = []
     for i in range(Map.shape[0]):
         rgb = (int(255*Map[i][0]), int(255*Map[i][1]), int(255*Map[i][2]))
@@ -71,7 +74,7 @@ def text_list_to_colors(names):
 
     # STEP B: pca dimanesionality reduction to a single-dimension 
     # (from the distance space)
-    pca = sklearn.decomposition.PCA(n_components = 1)
+    pca = decomposition.PCA(n_components = 1)
     pca.fit(Dnames)    
     
     # STEP C: mapping of 1-dimensional values to colors in a jet-colormap
@@ -140,9 +143,9 @@ def visualizeFeaturesFolder(folder, dimReductionMethod, priorKnowledge = "none")
             K1 = F.shape[0]
         if K2 > F.shape[0]:
             K2 = F.shape[0]
-        pca1 = sklearn.decomposition.PCA(n_components = K1)
+        pca1 = decomposition.PCA(n_components = K1)
         pca1.fit(F)        
-        pca2 = sklearn.decomposition.PCA(n_components = K2)
+        pca2 = decomposition.PCA(n_components = K2)
         pca2.fit(F)        
 
         finalDims = pca1.transform(F)
@@ -183,7 +186,7 @@ def visualizeFeaturesFolder(folder, dimReductionMethod, priorKnowledge = "none")
         clf.fit(F, ldaLabels)    
         reducedDims =  clf.transform(F)
 
-        pca = sklearn.decomposition.PCA(n_components = 2)
+        pca = decomposition.PCA(n_components = 2)
         pca.fit(reducedDims)
         reducedDims = pca.transform(reducedDims)
 
