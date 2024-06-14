@@ -3,6 +3,7 @@ import os
 import csv
 import glob
 import scipy
+from scipy import signal as sig
 import sklearn
 import numpy as np
 import hmmlearn.hmm
@@ -1151,7 +1152,7 @@ def music_thumbnailing(signal, sampling_rate, short_window=1.0, short_step=0.5,
     # moving filter:
     m_filter = int(round(thumb_size / short_step))
     diagonal = np.eye(m_filter, m_filter)
-    sim_matrix = scipy.signal.convolve2d(sim_matrix, diagonal, 'valid')
+    sim_matrix = sig.convolve2d(sim_matrix, diagonal, 'valid')
 
     # post-processing (remove main diagonal elements)
     min_sm = np.min(sim_matrix)
