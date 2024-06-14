@@ -111,6 +111,8 @@ def segments_to_labels(start_times, end_times, labels, window):
     flags -- Numpy array of class indices
     class_names -- List of classnames (strings)
     """
+    if not start_times and not end_times:
+        return np.array([]), []
     flags = []
     class_names = list(set(labels))
     index = window / 2.0
@@ -162,17 +164,21 @@ def read_segmentation_gt(gt_file):
         seg_end = []
         seg_labs = []
         with open(gt_file, 'r') as f:
-            reader = csv.reader(f)
+            reader = csv.reader(f, delimiter=',', quotechar='|')
             next(reader)  # Skip header
             for row in reader:
-                if len(row) == 3:
-                    seg_start.append(float(row[0]))
-                    seg_end.append(float(row[1]))
-                    seg_labs.append(float(row[2]))
+                if len(row) == 4:
+                    seg_start.append(float(row[1]))
+                    seg_end.append(float(row[2]))
+                    seg_labs.append(row[3])
+                else:
+                    if not seg_start and seg_end:
+                        raise ValueError("No valid data found in the csv file.")
         return seg_start, seg_end, seg_labs
     
     except ModuleNotFoundError as e:
-        print("Module not found, install or upgrade with `pip insatll python-csv` or `pip --upgrade install python-csv`.", e)
+        install = print("pip install python-csv"); upgrade = print("pip --upgrade install python-csv")
+        print(f"Module not found, install or upgrade with {install} or {upgrade}.", e)
 
 
 def plot_segmentation_results(flags_ind, flags_ind_gt, class_names, mt_step,
@@ -332,7 +338,7 @@ def train_hmm_from_file(wav_file, gt_file, hmm_model_name, mid_window, mid_step)
     Arguments:
     wav_file -- Path of the audio filename
     gt_file -- Path of the ground truth filename (CSV file)
-    hmm_model_name -- Name of the HMM model to be stored    
+    hmm_model_name -- Name of the HMM model to be stored
     mid_window -- Mid-term window size (in seconds)
     mid_step -- Mid-term window step (in seconds)
     Returns:
@@ -380,43 +386,46 @@ def train_hmm_from_directory(folder_path, hmm_model_name, mid_window, mid_step):
     flags_all = np.array([])
     class_names_all = []
     f_all = None  # Initialize f_all to None
+    try:
+        for i, f in enumerate(glob.glob(os.path.join(folder_path, '*.wav'))):
+            # For each WAV file
+            wav_file = f
+            gt_file = f.replace('.wav', '.segments')
+            if os.path.isfile(gt_file):
+                seg_start, seg_end, seg_labs = read_segmentation_gt(gt_file)
+                flags, class_names = segments_to_labels(seg_start, seg_end, seg_labs, mid_step)
+                for c in class_names:
+                    # Update class names
+                    if c not in class_names_all:
+                        class_names_all.append(c)
+                sampling_rate, signal = audioBasicIO.read_audio_file(wav_file)
+                feature_vector, _, _ = mtf.mid_feature_extraction(
+                    signal, sampling_rate,
+                    mid_window * sampling_rate,
+                    mid_step * sampling_rate,
+                    round(sampling_rate * 0.050),
+                    round(sampling_rate * 0.050)
+                )
 
-    for i, f in enumerate(glob.glob(os.path.join(folder_path, '*.wav'))):
-        # For each WAV file
-        wav_file = f
-        gt_file = f.replace('.wav', '.segments')
-        if os.path.isfile(gt_file):
-            seg_start, seg_end, seg_labs = read_segmentation_gt(gt_file)
-            flags, class_names = segments_to_labels(seg_start, seg_end, seg_labs, mid_step)
-            for c in class_names:
-                # Update class names
-                if c not in class_names_all:
-                    class_names_all.append(c)
-            sampling_rate, signal = audioBasicIO.read_audio_file(wav_file)
-            feature_vector, _, _ = mtf.mid_feature_extraction(
-                signal, sampling_rate,
-                mid_window * sampling_rate,
-                mid_step * sampling_rate,
-                round(sampling_rate * 0.050),
-                round(sampling_rate * 0.050)
-            )
+                flag_len = len(flags)
+                feat_cols = feature_vector.shape[1]
+                min_sm = min(feat_cols, flag_len)
+                feature_vector = feature_vector[:, 0:min_sm]
+                flags = flags[0:min_sm]
 
-            flag_len = len(flags)
-            feat_cols = feature_vector.shape[1]
-            min_sm = min(feat_cols, flag_len)
-            feature_vector = feature_vector[:, 0:min_sm]
-            flags = flags[0:min_sm]
+                flags_new = []
+                # append features and labels
+                for j, fl in enumerate(flags):
+                    flags_new.append(class_names_all.index(class_names_all[flags[j]]))
+                flags_all = np.append(flags_all, np.array(flags_new))
 
-            flags_new = [class_names_all.index(class_names_all[flags[j]]) for j in range(len(flags))]
-            flags_all = np.append(flags_all, np.array(flags_new))
-
-            if f_all is None:
-                f_all = feature_vector
-            else:
-                f_all = np.concatenate((f_all, feature_vector), axis=1)
-
-    if f_all is None or flags_all.size == 0:
-        raise ValueError("No valid .wav and .segments files found in the directory.")
+                if f_all is None:
+                    f_all = feature_vector
+                else:
+                    f_all = np.concatenate((f_all, feature_vector), axis=1)
+    except:
+    # if f_all is None or flags_all.size == 0:
+        raise ValueError("Please validate .wav and their .segments file are located in your desired directory.")  
 
     # Compute HMM statistics
     class_priors, transmutation_matrix, means, cov = train_hmm_compute_statistics(f_all, flags_all)
@@ -966,10 +975,13 @@ def speaker_diarization(filename, n_speakers, mid_window=1.0, mid_step=0.1,
                                               mid_features_temp)
                         sil_temp.append(np.mean(dist)*(clust_per_cent
                                                        + clust_per_cent_2)/2.0)
-                sil_temp = np.array(sil_temp)
+                if sil_temp:
+                    sil_temp = np.array(sil_temp)
                 # ... and keep the minimum value (i.e.
                 # the distance from the "nearest" cluster)
-                sil_2.append(min(sil_temp))
+                    sil_2.append(min(sil_temp))
+                else:
+                    sil_2.append(0.0)
         sil_1 = np.array(sil_1)
         sil_2 = np.array(sil_2)
         sil = []
