@@ -505,8 +505,8 @@ def parse_arguments():
 
     Note:
         1. Input folder contains only .wav formated files otherwise it throws the error.
-        2: Create segmentations of each .wav files if you havn't.
-        3: If you don't have .segments files go thru the `creating_segmentation.py` first and create segementations.
+        2. Create segmentations of each .wav files if you havn't.
+        3. If you don't have .segments files go through the `creating_segmentation.py` and create segementations first.
         4. Then run the script as above i mentioned.
     """
     trainHMMDir = tasks.add_parser("trainHMMsegmenter_fromdir",
@@ -523,6 +523,12 @@ def parse_arguments():
     #<-----------------------------------------------------------------------------------------------------------------#
     
     #------------------------------------------------------------------------------------------------------------------>
+    """ Run this Command on your terminal for `segmentClassifyFile`.
+    python pyAudioAnalysis/audioAnalysis.py segmentClassifyFile -i G:/pyAudioAnalysis/pyAudioAnalysis/data/recording1.wav --model svm_rbf --modelName G:/pyAudioAnalysis/pyAudioAnalysis/data/models/svm_rbf_sm
+    
+    Usage:
+        -> Pick any model as per choices are avalaible as per --model.
+    """
     segmentClassifyFile = tasks.add_parser("segmentClassifyFile",
                                            help="Segmentation - classification "
                                                 "of a WAV file given a trained "
@@ -537,7 +543,9 @@ def parse_arguments():
     segmentClassifyFile.add_argument("--modelName", required=True,
                                      help="Model path")
     #<-----------------------------------------------------------------------------------------------------------------#
-    
+    """ Run this Command on your terminal for `segmentClassifyFileHMM`.
+    python pyAudioAnalysis/audioAnalysis.py segmentClassifyFileHMM -i G:/pyAudioAnalysis/pyAudioAnalysis/data/recording1.wav  --hmm G:/pyAudioAnalysis/pyAudioAnalysis/data/hmmRadioSM
+    """
     #------------------------------------------------------------------------------------------------------------------>
     segmentClassifyFileHMM = tasks.add_parser("segmentClassifyFileHMM",
                                               help="Segmentation - "
@@ -550,6 +558,13 @@ def parse_arguments():
     #<-----------------------------------------------------------------------------------------------------------------#
     
     #------------------------------------------------------------------------------------------------------------------>
+    """Run this Command on your terminal for `segmentationEvaluation`.
+    python pyAudioAnalysis/audioAnalysis.py segmentationEvaluation -i G:/pyAudioAnalysis/pyAudioAnalysis/data/speechTesting --model hmm --modelName G:/pyAudioAnalysis/pyAudioAnalysis/data/hmmRadioSM
+    
+    Usage:
+        -> Pick any model as per choices are avalaible as per --model.
+    
+    """
     segmentationEvaluation = tasks.add_parser("segmentationEvaluation", help=
                                               "Segmentation - classification "
                                               "evaluation for a list of WAV "
@@ -610,13 +625,20 @@ def parse_arguments():
     #<-----------------------------------------------------------------------------------------------------------------#
 
     #------------------------------------------------------------------------------------------------------------------>
+    """Run this Command on your terminal for `speakerDiarization`.
+    python pyAudioAnalysis/audioAnalysis.py speakerDiarization -i G:/pyAudioAnalysis/pyAudioAnalysis/data/recording3.wav  --num 1 --flsd    
+    
+    Usage:
+        -> Pick any audio file contains .wav format.
+    
+    """
     spkrDir = tasks.add_parser("speakerDiarization")
     spkrDir.add_argument("-i", "--input", required=True,
                          help="Input audio file")
     spkrDir.add_argument("-n", "--num", type=int, required=True,
                          help="Number of speakers")
     spkrDir.add_argument("--flsd", action="store_true",
-                         help="Enable FLsD method")
+                         help="Enable FLsD(Fixed-Length Segment Diarization) method")
     #<-----------------------------------------------------------------------------------------------------------------#
 
     #------------------------------------------------------------------------------------------------------------------>
