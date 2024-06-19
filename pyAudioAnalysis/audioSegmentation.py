@@ -11,6 +11,7 @@ import sklearn.cluster
 import pickle as cpickle
 import matplotlib.pyplot as plt
 from scipy.spatial import distance
+from scipy.signal import medfilt
 import sklearn.discriminant_analysis
 from sklearn.preprocessing import StandardScaler
 import sys
@@ -282,10 +283,16 @@ def evaluate_speaker_diarization(labels, labels_gt):
     purity_speak = np.zeros((rows, ))
     # compute cluster purity:
     for i in range(columns):
-        purity_clust[i] = np.max((contigency_matrix[i, :])) / (column_sum[i])
+        if column_sum[i] != 0:
+            purity_clust[i] = np.max((contigency_matrix[i, :])) / (column_sum[i])
+        else:
+            column_sum[i] = 0
 
     for j in range(rows):
-        purity_speak[j] = np.max((contigency_matrix[:, j])) / (row_sum[j])
+        if row_sum[j] != 0:
+            purity_speak[j] = np.max((contigency_matrix[:, j])) / (row_sum[j])
+        else:
+            row_sum[j] = 0
 
     purity_cluster_m = np.sum(purity_clust * column_sum) / matrix_sum
     purity_speaker_m = np.sum(purity_speak * row_sum) / matrix_sum
@@ -1017,7 +1024,7 @@ def speaker_diarization(filename, n_speakers, mid_window=1.0, mid_step=0.1,
             hmm.means_ = means; hmm.covars_ = cov
             cls = hmm.predict(mt_feats_norm_or)                        
     # Post-process method 2: median filtering:
-    cls = scipy.signal.medfilt(cls, 5)
+    cls = medfilt(cls, 5)
 
     class_names = ["speaker{0:d}".format(c) for c in range(num_speakers)]
 
