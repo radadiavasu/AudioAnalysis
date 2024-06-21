@@ -629,7 +629,7 @@ def parse_arguments():
     python pyAudioAnalysis/audioAnalysis.py speakerDiarization -i G:/pyAudioAnalysis/pyAudioAnalysis/data/recording3.wav  --num 1 --flsd    
     
     Usage:
-        -> Pick any audio file contains .wav format.
+        -> Pick only .wav format audio file.
     
     """
     spkrDir = tasks.add_parser("speakerDiarization")
@@ -642,6 +642,14 @@ def parse_arguments():
     #<-----------------------------------------------------------------------------------------------------------------#
 
     #------------------------------------------------------------------------------------------------------------------>
+    """Run this Command on your terminal for `speakerDiarizationScriptEval`.
+    python pyAudioAnalysis/audioAnalysis.py speakerDiarizationScriptEval -i G:/pyAudioAnalysis/pyAudioAnalysis/data/speechTesting/00.wav  --LDAs 1 2 3 4 5 6
+    
+    Usage:
+        -> Pick .wav format audio file.
+        -> Enter actuall LDAs(Liniear Descriminant Analysis) as per selected audio file.
+    
+    """
     speakerDiarizationScriptEval = tasks.add_parser("speakerDiarizationScriptEval",
                                                     help="Train an SVM or KNN "
                                                          "classifier")
@@ -653,6 +661,14 @@ def parse_arguments():
     #<-----------------------------------------------------------------------------------------------------------------#
 
     #------------------------------------------------------------------------------------------------------------------>
+    """Run this Command on your terminal for `thumbnail`.
+    python pyAudioAnalysis/audioAnalysis.py thumbnail -i G:/pyAudioAnalysis/pyAudioAnalysis/data/scottish.wav  -s 10  
+    
+    Usage:
+        -> Pick .wav format audio file.
+        -> Enter thumbnailWrapper size in seconds as per selected audio file (means length of the audio file).
+    
+    """
     thumb = tasks.add_parser("thumbnail",
                              help="Generate a thumbnailWrapper "
                                   "for an audio file")
