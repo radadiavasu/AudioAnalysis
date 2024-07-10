@@ -22,8 +22,8 @@ def generateColorMap():
     hex string colors (e.g. FF88AA)
     # '''
     Jet = matplotlib.colormaps.get_cmap('jet')
-    Map = Jet(np.arange(256))
-    # Map = cm.jet(np.arange(256)) # Under Testing
+    Map = Jet(np.arange(256)) 
+    # Map = cm.jet(np.arange(256)) # Old code replace with previous `Map`.
     stringColors = []
     for i in range(Map.shape[0]):
         rgb = (int(255*Map[i][0]), int(255*Map[i][1]), int(255*Map[i][2]))
