@@ -234,5 +234,5 @@ def visualizeFeaturesFolder(folder, dimReductionMethod, priorKnowledge = "none")
     fig.show()
 
 # for test-case
-visualizeFeaturesFolder(folder=r"G:\pyAudioAnalysis\pyAudioAnalysis\data\speechTesting", dimReductionMethod="pca", priorKnowledge = "none")
+# visualizeFeaturesFolder(folder=r"G:\pyAudioAnalysis\pyAudioAnalysis\data\speechTesting", dimReductionMethod="pca", priorKnowledge = "none")
 # text_list_to_colors_simple(names=generateColorMap())

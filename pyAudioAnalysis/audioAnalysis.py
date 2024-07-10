@@ -580,6 +580,7 @@ def parse_arguments():
     #<-----------------------------------------------------------------------------------------------------------------#
 
     #------------------------------------------------------------------------------------------------------------------>
+    """Under Testing"""
     regFile = tasks.add_parser("regressionFile")
     regFile.add_argument("-i", "--input", required=True,
                          help="Input audio file")
@@ -590,6 +591,13 @@ def parse_arguments():
     #<-----------------------------------------------------------------------------------------------------------------#
 
     #------------------------------------------------------------------------------------------------------------------>
+    """Run this Command on your terminal for `classifyFolder`.
+    python pyAudioAnalysis/audioAnalysis.py classifyFolder -i G:\pyAudioAnalysis\pyAudioAnalysis\data\speechTesting\ --model svm --classifier G:\pyAudioAnalysis\pyAudioAnalysis\data\models\svm_rbf_sm --details    
+    
+    Usage:
+        -> Pick only .wav format audio file folder.
+    
+    """
     classFolder = tasks.add_parser("classifyFolder")
     classFolder.add_argument("-i", "--input", required=True,
                              help="Input folder")
@@ -606,6 +614,7 @@ def parse_arguments():
     #<-----------------------------------------------------------------------------------------------------------------#
 
     #------------------------------------------------------------------------------------------------------------------>
+    """Under Testing"""
     regFolder = tasks.add_parser("regressionFolder")
     regFolder.add_argument("-i", "--input", required=True, help="Input folder")
     regFolder.add_argument("--model", choices=["svm", "knn"],
@@ -615,6 +624,13 @@ def parse_arguments():
     #<-----------------------------------------------------------------------------------------------------------------#
 
     #------------------------------------------------------------------------------------------------------------------>
+    """Run this Command on your terminal for `silenceRemoval`.
+    python pyAudioAnalysis/audioAnalysis.py silenceRemoval -i G:/pyAudioAnalysis/pyAudioAnalysis/data/scottish.wav  -s 3 -w 0    
+    
+    Usage:
+        -> Pick only .wav format audio file.
+    
+    """
     silrem = tasks.add_parser("silenceRemoval",
                               help="Remove silence segments from a recording")
     silrem.add_argument("-i", "--input", required=True, help="input audio file")
