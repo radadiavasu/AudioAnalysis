@@ -580,7 +580,10 @@ def parse_arguments():
     #<-----------------------------------------------------------------------------------------------------------------#
 
     #------------------------------------------------------------------------------------------------------------------>
-    """Under Testing"""
+    """ -> Under Testing <- """
+    
+    """python pyAudioAnalysis/audioAnalysis.py regressionFile -i G:/pyAudioAnalysis/pyAudioAnalysis/data/speechEmotion/00.wav --model svm_rbf --regression G:/pyAudioAnalysis/pyAudioAnalysis/data/models/regreesion_model
+    """
     regFile = tasks.add_parser("regressionFile")
     regFile.add_argument("-i", "--input", required=True,
                          help="Input audio file")
