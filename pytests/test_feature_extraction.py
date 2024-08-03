@@ -13,7 +13,7 @@ def test_feature_extraction_short():
                                                       0.050 * fs, 0.050 * fs)
     print("Feature matrix shape:", F.shape)
     print("Feature names:", f_names)
-    assert F.shape[1] == 20, "Wrong number of mid-term windows"
+    assert F.shape[1] == 20, "Wrong number of mid-term windows" # assert F.shape[1] > 1 for tightless feature extraction
     assert F.shape[0] == len(f_names), "Number of features and feature " \
                                        "names are not the same"
 
@@ -29,7 +29,7 @@ def test_feature_extraction_segment():
     print("Mid-term feature matrix shape:", mt.shape)
     print("Short-term feature matrix shape:", st.shape)
     print("Mid-term feature names:", mt_names)
-    assert mt.shape[1] == 5, "Wrong number of short-term windows"
+    assert mt.shape[1] == 5, "Wrong number of short-term windows" # assert mt.shape[1] > 1 for tightless feature extraction
     assert mt.shape[0] == len(mt_names),  "Number of features and feature " \
                                           "names are not the same"
 
