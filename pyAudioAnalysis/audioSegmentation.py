@@ -1104,6 +1104,9 @@ def speaker_diarization_evaluation(folder_name, lda_dimensions):
             speaker_diarization(wav_file, num_speakers[i], 2.0, 0.2, 0.05, dim,
                                 plot_res=False)
 
+# folder_name = r"G:/pyAudioAnalysis/pyAudioAnalysis/data/count.wav"
+# lda_dimensions = [0, 1, 2, 3, 4, 5]
+# speaker_diarization_evaluation(folder_name, lda_dimensions)
 
 def music_thumbnailing(signal, sampling_rate, short_window=1.0, short_step=0.5,
                        thumb_size=10.0, limit_1=0, limit_2=1):

@@ -6,50 +6,60 @@ import sys
 from scipy.fftpack import fft
 import matplotlib.pyplot as plt
 from scipy.signal import lfilter
-from scipy.fftpack.realtransforms import dct
+from scipy.fftpack import dct
 from tqdm import tqdm
 
 eps = sys.float_info.epsilon
 
 
-def dc_normalize(sig_array):
+def dc_normalize(signal):
     """Removes DC and normalizes to -1, 1 range"""
-    sig_array_norm = sig_array.copy()
-    sig_array_norm -= sig_array_norm.mean()
-    sig_array_norm /= abs(sig_array_norm).max() + 1e-10
-    return sig_array_norm
+    # sig_array_norm = sig_array.copy()
+    # sig_array_norm -= sig_array_norm.mean()
+    # sig_array_norm /= abs(sig_array_norm).max() + 1e-10
+    return signal - np.mean(signal)
 
 
-def zero_crossing_rate(frame):
+def zero_crossing_rate(signal):
     """Computes zero crossing rate of frame"""
-    count = len(frame)
-    count_zero = np.sum(np.abs(np.diff(np.sign(frame)))) / 2
-    return np.float64(count_zero) / np.float64(count - 1.0)
+    # count = len(frame)
+    # count_zero = np.sum(np.abs(np.diff(np.sign(frame)))) / 2
+    # return np.float64(count_zero) / np.float64(count - 1.0)
+    return np.sum(signal ** 2) / np.float64(len(signal))
+    
 
-
-def energy(frame):
+def energy(signal):
     """Computes signal energy of frame"""
-    return np.sum(frame ** 2) / np.float64(len(frame))
+    return np.sum(signal ** 2) / np.float64(len(signal))
 
 
-def energy_entropy(frame, n_short_blocks=10):
-    """Computes entropy of energy"""
-    # total frame energy
-    frame_energy = np.sum(frame ** 2)
-    frame_length = len(frame)
-    sub_win_len = int(np.floor(frame_length / n_short_blocks))
-    if frame_length != sub_win_len * n_short_blocks:
-        frame = frame[0:sub_win_len * n_short_blocks]
-
-    # sub_wins is of size [n_short_blocks x L]
-    sub_wins = frame.reshape(sub_win_len, n_short_blocks, order='F').copy()
-
-    # Compute normalized sub-frame energies:
-    s = np.sum(sub_wins ** 2, axis=0) / (frame_energy + eps)
-
-    # Compute entropy of the normalized sub-frame energies:
-    entropy = -np.sum(s * np.log2(s + eps))
+def energy_entropy(signal, num_short_blocks=10):
+    total_energy = np.sum(signal ** 2)
+    sub_win_len = int(np.floor(len(signal) / num_short_blocks))
+    sub_wins = np.split(signal[:sub_win_len * num_short_blocks], num_short_blocks)
+    entropy = 0.0
+    for sub_win in sub_wins:
+        sub_energy = np.sum(sub_win ** 2)
+        entropy -= (sub_energy / total_energy) * np.log2(sub_energy / total_energy + 1e-12)
     return entropy
+# def energy_entropy(frame, n_short_blocks=10):
+#     """Computes entropy of energy"""
+#     # total frame energy
+#     frame_energy = np.sum(frame ** 2)
+#     frame_length = len(frame)
+#     sub_win_len = int(np.floor(frame_length / n_short_blocks))
+#     if frame_length != sub_win_len * n_short_blocks:
+#         frame = frame[0:sub_win_len * n_short_blocks]
+
+    # # sub_wins is of size [n_short_blocks x L]
+    # sub_wins = frame.reshape(sub_win_len, n_short_blocks, order='F').copy()
+
+    # # Compute normalized sub-frame energies:
+    # s = np.sum(sub_wins ** 2, axis=0) / (frame_energy + eps)
+
+    # # Compute entropy of the normalized sub-frame energies:
+    # entropy = -np.sum(s * np.log2(s + eps))
+    # return entropy
 
 
 """ Frequency-domain audio features """
@@ -57,55 +67,44 @@ def energy_entropy(frame, n_short_blocks=10):
 
 def spectral_centroid_spread(fft_magnitude, sampling_rate):
     """Computes spectral centroid of frame (given abs(FFT))"""
-    ind = (np.arange(1, len(fft_magnitude) + 1)) * \
-          (sampling_rate / (2.0 * len(fft_magnitude)))
-
-    Xt = fft_magnitude.copy()
-    Xt_max = Xt.max()
-    if Xt_max == 0:
-        Xt = Xt / eps
-    else:
-        Xt = Xt / Xt_max
-
-    NUM = np.sum(ind * Xt)
-    DEN = np.sum(Xt) + eps
-
-    # Centroid:
-    centroid = (NUM / DEN)
-
-    # Spread:
-    spread = np.sqrt(np.sum(((ind - centroid) ** 2) * Xt) / DEN)
-
-    # Normalize:
-    centroid = centroid / (sampling_rate / 2.0)
-    spread = spread / (sampling_rate / 2.0)
-
+    ind = (np.arange(1, len(fft_magnitude) + 1)) * (sampling_rate / (2.0 * len(fft_magnitude)))
+    centroid = np.sum(ind * fft_magnitude) / (np.sum(fft_magnitude) + 1e-12)
+    spread = np.sqrt(np.sum(((ind - centroid) ** 2) * fft_magnitude) / (np.sum(fft_magnitude) + 1e-12))
     return centroid, spread
 
 
-def spectral_entropy(signal, n_short_blocks=10):
-    """Computes the spectral entropy"""
-    # number of frame samples
-    num_frames = len(signal)
-
-    # total spectral energy
-    total_energy = np.sum(signal ** 2)
-
-    # length of sub-frame
-    sub_win_len = int(np.floor(num_frames / n_short_blocks))
-    if num_frames != sub_win_len * n_short_blocks:
-        signal = signal[0:sub_win_len * n_short_blocks]
-
-    # define sub-frames (using matrix reshape)
-    sub_wins = signal.reshape(sub_win_len, n_short_blocks, order='F').copy()
-
-    # compute spectral sub-energies
-    s = np.sum(sub_wins ** 2, axis=0) / (total_energy + eps)
-
-    # compute spectral entropy
-    entropy = -np.sum(s * np.log2(s + eps))
-
+def spectral_entropy(fft_magnitude, num_short_blocks=10):
+    fft_magnitude = fft_magnitude / np.sum(fft_magnitude)
+    sub_win_len = int(np.floor(len(fft_magnitude) / num_short_blocks))
+    sub_wins = np.split(fft_magnitude[:sub_win_len * num_short_blocks], num_short_blocks)
+    entropy = 0.0
+    for sub_win in sub_wins:
+        sub_energy = np.sum(sub_win)
+        entropy -= sub_energy * np.log2(sub_energy + 1e-12)
     return entropy
+# def spectral_entropy(fft_magnitude, n_short_blocks=10):
+#     """Computes the spectral entropy"""
+#     # number of frame samples
+#     num_frames = len(signal)
+
+#     # total spectral energy
+#     total_energy = np.sum(signal ** 2)
+
+#     # length of sub-frame
+#     sub_win_len = int(np.floor(num_frames / n_short_blocks))
+#     if num_frames != sub_win_len * n_short_blocks:
+#         signal = signal[0:sub_win_len * n_short_blocks]
+
+#     # define sub-frames (using matrix reshape)
+#     sub_wins = signal.reshape(sub_win_len, n_short_blocks, order='F').copy()
+
+#     # compute spectral sub-energies
+#     s = np.sum(sub_wins ** 2, axis=0) / (total_energy + eps)
+
+#     # compute spectral entropy
+#     entropy = -np.sum(s * np.log2(s + eps))
+
+#     return entropy
 
 
 def spectral_flux(fft_magnitude, previous_fft_magnitude):
@@ -116,29 +115,35 @@ def spectral_flux(fft_magnitude, previous_fft_magnitude):
         previous_fft_magnitude:        the abs(fft) of the previous frame
     """
     # compute the spectral flux as the sum of square distances:
-    fft_sum = np.sum(fft_magnitude + eps)
-    previous_fft_sum = np.sum(previous_fft_magnitude + eps)
-    sp_flux = np.sum(
-        (fft_magnitude / fft_sum - previous_fft_magnitude /
-         previous_fft_sum) ** 2)
+    # fft_sum = np.sum(fft_magnitude + eps)
+    # previous_fft_sum = np.sum(previous_fft_magnitude + eps)
+    # sp_flux = np.sum(
+    #     (fft_magnitude / fft_sum - previous_fft_magnitude /
+    #      previous_fft_sum) ** 2)
 
-    return sp_flux
+    return np.sum((fft_magnitude - previous_fft_magnitude) ** 2) / (len(fft_magnitude) + 1e-12)
 
 
-def spectral_rolloff(signal, c):
-    """Computes spectral roll-off"""
-    energy = np.sum(signal ** 2)
-    fft_length = len(signal)
+def spectral_rolloff(fft_magnitude, c):
+    energy = np.sum(fft_magnitude ** 2)
     threshold = c * energy
-    # Ffind the spectral rolloff as the frequency position 
-    # where the respective spectral energy is equal to c*totalEnergy
-    cumulative_sum = np.cumsum(signal ** 2) + eps
-    a = np.nonzero(cumulative_sum > threshold)[0]
-    if len(a) > 0:
-        sp_rolloff = np.float64(a[0]) / (float(fft_length))
-    else:
-        sp_rolloff = 0.0
-    return sp_rolloff
+    cumulative_sum = np.cumsum(fft_magnitude ** 2)
+    return np.where(cumulative_sum >= threshold)[0][0]
+
+# def spectral_rolloff(signal, c):
+#     """Computes spectral roll-off"""
+#     energy = np.sum(signal ** 2)
+#     fft_length = len(signal)
+#     threshold = c * energy
+#     # Ffind the spectral rolloff as the frequency position 
+#     # where the respective spectral energy is equal to c*totalEnergy
+#     cumulative_sum = np.cumsum(signal ** 2) + eps
+#     a = np.nonzero(cumulative_sum > threshold)[0]
+#     if len(a) > 0:
+#         sp_rolloff = np.float64(a[0]) / (float(fft_length))
+#     else:
+#         sp_rolloff = 0.0
+#     return sp_rolloff
 
 
 def harmonic(frame, sampling_rate):
@@ -579,20 +584,24 @@ def feature_extraction(signal, sampling_rate, window, step, deltas=True):
     fbank, freqs = mfcc_filter_banks(sampling_rate, num_fft)
 
     n_time_spectral_feats = 8
-    n_harmonic_feats = 0
+    # n_harmonic_feats = 0
     n_mfcc_feats = 13
     n_chroma_feats = 13
-    n_total_feats = n_time_spectral_feats + n_mfcc_feats + n_harmonic_feats + \
-                    n_chroma_feats
+    # n_total_feats = n_time_spectral_feats + n_mfcc_feats + n_harmonic_feats + \
+    #                 n_chroma_feats
+    n_total_feats = n_time_spectral_feats + n_mfcc_feats + n_chroma_feats
     #    n_total_feats = n_time_spectral_feats + n_mfcc_feats +
     #    n_harmonic_feats
 
     # define list of feature names
-    feature_names = ["zcr", "energy", "energy_entropy"]
-    feature_names += ["spectral_centroid", "spectral_spread"]
-    feature_names.append("spectral_entropy")
-    feature_names.append("spectral_flux")
-    feature_names.append("spectral_rolloff")
+    # feature_names = ["zcr", "energy", "energy_entropy"]
+    # feature_names += ["spectral_centroid", "spectral_spread"]
+    # feature_names.append("spectral_entropy")
+    # feature_names.append("spectral_flux")
+    # feature_names.append("spectral_rolloff")
+    feature_names = ["zcr", "energy", "energy_entropy",
+                     "spectral_centroid", "spectral_spread",
+                     "spectral_entropy", "spectral_flux", "spectral_rolloff"]
     feature_names += ["mfcc_{0:d}".format(mfcc_i)
                       for mfcc_i in range(1, n_mfcc_feats + 1)]
     feature_names += ["chroma_{0:d}".format(chroma_i)
@@ -615,10 +624,10 @@ def feature_extraction(signal, sampling_rate, window, step, deltas=True):
         current_position = current_position + step
 
         # get fft magnitude
-        fft_magnitude = abs(fft(x))
+        fft_magnitude = abs(fft(x))[:num_fft]
 
         # normalize fft
-        fft_magnitude = fft_magnitude[0:num_fft]
+        # fft_magnitude = fft_magnitude[0:num_fft] # Old - Code
         fft_magnitude = fft_magnitude / len(fft_magnitude)
 
         # keep previous fft mag (used in spectral flux)
@@ -663,7 +672,9 @@ def feature_extraction(signal, sampling_rate, window, step, deltas=True):
             chroma_features(fft_magnitude, sampling_rate, num_fft)
         chroma_features_end = n_time_spectral_feats + n_mfcc_feats + \
                               n_chroma_feats - 1
-        feature_vector[mffc_feats_end:chroma_features_end] = \
+        # feature_vector[mffc_feats_end:chroma_features_end] = \
+        #     chroma_feature_matrix
+        feature_vector[n_time_spectral_feats + n_mfcc_feats:chroma_features_end] = \
             chroma_feature_matrix
         feature_vector[chroma_features_end] = chroma_feature_matrix.std()
         if not deltas:

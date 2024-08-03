@@ -1148,7 +1148,7 @@ def file_regression(input_file, model_name, model_type):
             model, mean, std, _, _, _, _, _ = load_model(r, True)
         curFV = (mid_features - mean) / std  # normalization
         # classification
-        R.append(regression_wrapper(model, model_type, curFV))
+        R.append(regression_wrapper(model, model_type, curFV, classifier_type=True))
     return R, regression_names
 
 
