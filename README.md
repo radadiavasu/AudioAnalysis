@@ -14,3 +14,7 @@ pyAudioAnalysis is a Python library covering a wide range of audio analysis task
 
  ## 💻 Working Visuals
 Stay tuned
+
+## 🤵‍♂️ Main Author
+
+https://github.com/tyiannak/pyAudioAnalysis
