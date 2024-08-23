@@ -21,7 +21,7 @@ https://github.com/tyiannak/pyAudioAnalysis
 
 ## 🤝 Contribute
 
-* Your Contributions are gladly welcome. What are you waiting for clone this repo right away and let's learn together.
+* Your Contributions are gladly welcome. What are you waiting for clone this repo right now and let's learn together.
 
 ``` bash
 https://github.com/radadiavasu/AudioAnalysis.git
