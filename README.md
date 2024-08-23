@@ -17,4 +17,4 @@ Stay tuned
 
 ## 🤵‍♂️ Main Author
 
-(https://github.com/tyiannak/pyAudioAnalysis)
+https://github.com/tyiannak/pyAudioAnalysis
